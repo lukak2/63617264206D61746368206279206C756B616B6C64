@@ -37,9 +37,6 @@ namespace Runtime.Utilities
         private void ApplySafeArea()
         {
             Rect safeArea = _cachedSafeArea;
-
-            Debug.Log(safeArea.position);
-            Debug.Log(safeArea.size);
             
             var anchorMin = safeArea.position;
             var anchorMax = safeArea.position + safeArea.size;
