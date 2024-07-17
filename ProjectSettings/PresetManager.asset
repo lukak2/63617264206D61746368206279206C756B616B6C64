@@ -4,4 +4,15 @@
 PresetManager:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_DefaultPresets: {}
+  m_DefaultPresets:
+  - first:
+      m_NativeTypeID: 1006
+      m_ManagedTypePPtr: {fileID: 0}
+      m_ManagedTypeFallback: 
+    second:
+    - m_Preset: {fileID: 2655988077585873504, guid: e387ff8ad39f248aaa26de58f9186d93, type: 2}
+      m_Filter: card_icon_*
+      m_Disabled: 0
+    - m_Preset: {fileID: 2655988077585873504, guid: c96dcc2b00bc24f318e00a5151e40a90, type: 2}
+      m_Filter: card_back_*
+      m_Disabled: 0
