@@ -28,9 +28,11 @@ namespace Runtime.Utilities
 
         #if UNITY_EDITOR
         // Necessary to update the safe area in the editor to consider possible change of aspect-ratio
+        // Would benefit from a more efficient way to update only when necessary, for better editor performance
         private void Update()
         {
             RefreshSafeArea();
+            ApplySafeArea();
         }
         #endif
 
