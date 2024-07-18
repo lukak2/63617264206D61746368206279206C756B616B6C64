@@ -356,6 +356,7 @@ MonoBehaviour:
   gameConfigurations:
   - {fileID: 11400000, guid: ac4003671853b4f05814e0fab3c08c15, type: 2}
   - {fileID: 11400000, guid: f9c46c79960464fa7bed0aadcceb7fcc, type: 2}
+  - {fileID: 11400000, guid: 09d1e25d866b44f789eab5ccad5f3523, type: 2}
   - {fileID: 11400000, guid: dc6f28b92cfd540c08353355961af926, type: 2}
   _scoreManager: {fileID: 98120364}
   _cardsManager: {fileID: 681118392}
@@ -781,7 +782,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 634548838}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -835,7 +836,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 634548838}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
@@ -844,14 +845,12 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 10
-  m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
-  m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
-  m_ChildScaleWidth: 0
-  m_ChildScaleHeight: 0
-  m_ReverseArrangement: 0
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 100, y: 100}
+  m_Spacing: {x: 0, y: 0}
+  m_Constraint: 0
+  m_ConstraintCount: 2
 --- !u!1 &681118390
 GameObject:
   m_ObjectHideFlags: 0
@@ -898,8 +897,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   factory:
     viewPrefab: {fileID: 6575006108945323687, guid: aa21280d638af4175a38990747a3f912, type: 3}
-  rowPrefab: {fileID: 6026717591591179582, guid: 1d189afb7571647d4b2b38011641452a, type: 3}
   cardCollection: {fileID: 11400000, guid: a3e29ea6a3db34d36bef66f7ddae8b2a, type: 2}
+  cardsGridLayoutGroup: {fileID: 634548843}
   cardsContainer: {fileID: 634548839}
   successfulMatchDuration: 1
   failedMatchDuration: 0.5

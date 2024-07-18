@@ -7,6 +7,7 @@ using Runtime.Utilities;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
+using UnityEngine.UI;
 
 namespace Runtime.Cards
 {
@@ -14,11 +15,11 @@ namespace Runtime.Cards
     {
         [Header("Resources")]
         [SerializeField] private CardFactory factory = new();
-        [SerializeField] private RectTransform rowPrefab;
-        
+
         [SerializeField] private CardCollection cardCollection;
 
         [Header("References")]
+        [SerializeField] private GridLayoutGroup cardsGridLayoutGroup;
         [SerializeField] private RectTransform cardsContainer;
         
         [Header("Parameters")]
@@ -28,7 +29,6 @@ namespace Runtime.Cards
         private IObjectPool<CardPresenter> _cardPool;
         private List<CardPresenter> _unmatchedCards = new();
         private List<CardPresenter> _activeCards = new();
-        private List<RectTransform> _rows = new();
         
         private CardPresenter _lastClickedPresenter;
 
@@ -45,17 +45,14 @@ namespace Runtime.Cards
         {
             Assert.IsTrue(rows * columns % 2 == 0, "Rows times Columns must be an even number");
             
+            var gridLayoutTransform = AdjustGridLayout(columns, rows);
+            
             for (int i = 0; i < rows; i++)
             {
-                RectTransform row = Instantiate(rowPrefab, cardsContainer);
-                row.name = $"Row {i}";
-                
-                _rows.Add(row);
-                
                 for (int j = 0; j < columns; j++)
                 {
                     CardPresenter presenter = _cardPool.Get();
-                    presenter.transform.SetParent(row, false);
+                    presenter.transform.SetParent(gridLayoutTransform, false);
                     presenter.transform.SetSiblingIndex(j);
                     
                     _unmatchedCards.Add(presenter);
@@ -68,16 +65,27 @@ namespace Runtime.Cards
             for (var i = _activeCards.Count - 1; i >= 0; i--)
             {
                 var activePresenter = _activeCards[i];
-                // _cardPool.Release(activePresenter);
+                _cardPool.Release(activePresenter);
             }
 
-            for (int i = _rows.Count - 1; i >= 0; i--)
-            {
-                Destroy(_rows[i].gameObject);
-            }
-            
-            _rows.Clear();
             _unmatchedCards.Clear();
+        }
+
+        RectTransform AdjustGridLayout(int columns, int rows)
+        {
+            var gridLayoutTransform = cardsGridLayoutGroup.GetComponent<RectTransform>();
+            
+            cardsGridLayoutGroup.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            cardsGridLayoutGroup.constraintCount = columns;
+
+            var gridRect = gridLayoutTransform.rect;
+            float width = gridRect.width / columns;
+            float height = gridRect.height / rows;
+
+            float cellSize = Mathf.Min(width, height);
+            cardsGridLayoutGroup.cellSize = new Vector2(cellSize, cellSize);
+
+            return gridLayoutTransform;
         }
 
         private void Setup()

@@ -150,6 +150,7 @@ GameObject:
   - component: {fileID: 4307453444151675185}
   - component: {fileID: 6575006108945323687}
   - component: {fileID: 6326900628203804139}
+  - component: {fileID: -8660194287768382035}
   m_Layer: 5
   m_Name: CardView
   m_TagString: Untagged
@@ -209,6 +210,20 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &-8660194287768382035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6087288821465059023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86710e43de46f6f4bac7c8e50813a599, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AspectMode: 1
+  m_AspectRatio: 1
 --- !u!1 &6289632794121498485
 GameObject:
   m_ObjectHideFlags: 0
