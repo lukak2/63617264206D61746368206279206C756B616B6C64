@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Runtime.Cards.MVP;
-using Runtime.Game;
+using Runtime.Feedback;
 using Runtime.Utilities;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -101,7 +101,7 @@ namespace Runtime.Cards
                 presenter.Deactivate();
                 presenter.Conceal();
                 
-                presenter.OnBackSideClick += OnPresenterOnOnBackSideClickAsync;
+                presenter.OnBackSideClick += OnCardReveal;
 
                 return presenter;
             }, 
@@ -120,11 +120,11 @@ namespace Runtime.Cards
             });
         }
 
-        private async void OnPresenterOnOnBackSideClickAsync(CardPresenter presenter)
+        private async void OnCardReveal(CardPresenter presenter)
         {
             presenter.SetInteractable(false);
             
-            AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.RevealSound);
+            AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.AudioLibrary.CardFlip);
             
             var lastPresenter = _lastClickedPresenter;
             
@@ -151,7 +151,7 @@ namespace Runtime.Cards
 
         private async void CompleteMatchAsync(CardPresenter current, CardPresenter last)
         {
-            AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.MatchSound);
+            AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.AudioLibrary.CardMatch);
             
             // Combining reveal and delay so that duration is not affected by the time it takes to reveal the card
             await Task.WhenAll(current.Reveal(), Task.Delay(TimeSpan.FromSeconds(successfulMatchDuration)));
@@ -175,7 +175,7 @@ namespace Runtime.Cards
 
         private async void FailedMatchAsync(CardPresenter current, CardPresenter last)
         {
-            AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.MismatchSound);
+            AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.AudioLibrary.CardMismatch);
             
             await Task.WhenAll(current.Reveal(), Task.Delay(TimeSpan.FromSeconds(failedMatchDuration)));
             

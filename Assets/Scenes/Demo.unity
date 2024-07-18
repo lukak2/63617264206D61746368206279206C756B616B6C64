@@ -714,10 +714,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47171ae49c329436ab5f074b2f2e9dd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <MatchSound>k__BackingField: {fileID: 8300000, guid: 818aa380d182e4563b7f003c4ea1e68e, type: 3}
-  <MismatchSound>k__BackingField: {fileID: 8300000, guid: 9a97c84deb120422a9a8db2578731505, type: 3}
-  <GameOverSound>k__BackingField: {fileID: 8300000, guid: 5eccb84ca99c840599c47a057c70e248, type: 3}
-  <RevealSound>k__BackingField: {fileID: 8300000, guid: e0ff644a7379b4d36afd7884241e6132, type: 3}
+  <AudioLibrary>k__BackingField: {fileID: 11400000, guid: 84eda1fb962cd46399934b97658b32b8, type: 2}
   oneShotAudioSource: {fileID: 402920092}
 --- !u!4 &536154519
 Transform:

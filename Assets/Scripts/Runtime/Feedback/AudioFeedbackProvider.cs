@@ -1,15 +1,12 @@
 using UnityEngine;
 
-namespace Runtime.Game
+namespace Runtime.Feedback
 {
     public class AudioFeedbackProvider : MonoBehaviour
     {
         public static AudioFeedbackProvider Instance { get; private set; }
 
-        [field: SerializeField] public AudioClip MatchSound { get; private set; }
-        [field: SerializeField] public AudioClip MismatchSound { get; private set; }
-        [field: SerializeField] public AudioClip GameOverSound { get; private set; }
-        [field: SerializeField] public AudioClip RevealSound { get; private set; }
+        [field: SerializeField] public AudioLibrary AudioLibrary { get; private set; }
 
         [SerializeField] private AudioSource oneShotAudioSource;
         
