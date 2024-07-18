@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Runtime.Cards.MVP;
+using Runtime.Game;
 using Runtime.Utilities;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -115,18 +116,18 @@ namespace Runtime.Cards
         {
             presenter.SetInteractable(false);
             
+            AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.RevealSound);
+            
             var lastPresenter = _lastClickedPresenter;
             
             if (lastPresenter != null)
             {
                 if (presenter.Matches(lastPresenter) && presenter != lastPresenter)
                 {
-                    Debug.Log("Match success!");
                     CompleteMatchAsync(presenter, lastPresenter);
                 }
                 else
                 {
-                    Debug.Log("Match failed!");
                     FailedMatchAsync(presenter, lastPresenter);
                 }
                 
@@ -142,6 +143,8 @@ namespace Runtime.Cards
 
         private async void CompleteMatchAsync(CardPresenter current, CardPresenter last)
         {
+            AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.MatchSound);
+            
             // Combining reveal and delay so that duration is not affected by the time it takes to reveal the card
             await Task.WhenAll(current.Reveal(), Task.Delay(TimeSpan.FromSeconds(successfulMatchDuration)));
             
@@ -159,10 +162,13 @@ namespace Runtime.Cards
             {
                 OnCardDeplete?.Invoke();
             }
+            
         }
 
         private async void FailedMatchAsync(CardPresenter current, CardPresenter last)
         {
+            AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.MismatchSound);
+            
             await Task.WhenAll(current.Reveal(), Task.Delay(TimeSpan.FromSeconds(failedMatchDuration)));
             
             await Task.WhenAll(current.Conceal(), last.Conceal());
