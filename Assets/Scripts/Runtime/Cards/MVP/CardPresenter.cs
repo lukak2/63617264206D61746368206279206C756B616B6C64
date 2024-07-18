@@ -6,8 +6,10 @@ using UnityEngine.UI;
 
 namespace Runtime.Cards.MVP
 {
-    public class CardPresenter : Presenter<CardModel>
+    public class CardPresenter : Presenter<CardModel>, IEquatable<CardPresenter>
     {
+        [SerializeField] private CanvasGroup canvasGroup;
+        
         [Header("Objects")]
         [SerializeField] private GameObject cardFrontSide;
         [SerializeField] private GameObject cardBackSide;
@@ -26,7 +28,6 @@ namespace Runtime.Cards.MVP
         {
             base.Initialize(model);
             
-            Subscribe();
             RefreshView();
         }
 
@@ -52,20 +53,74 @@ namespace Runtime.Cards.MVP
             OnBackSideClick?.Invoke(this);
         }
 
-        public Task ShowCard()
+        /// <summary>
+        /// Reveal performs the action of showing the front side of the card.
+        /// </summary>
+        /// <returns></returns>
+        public Task Reveal()
         {
-            cardFrontSide.SetActive(true);
-            cardBackSide.SetActive(false);
+            SetInteractable(false);
+            
+            cardFrontSide.gameObject.SetActive(true);
+            cardBackSide.gameObject.SetActive(false);
             
             return Task.CompletedTask;
         }
-
-        public Task HideCard()
+        
+        /// <summary>
+        /// Conceal performs the action of hiding front side and showing the back side of the card.
+        /// </summary>
+        /// <returns></returns>
+        public Task Conceal()
         {
+            SetInteractable(true);
+            
             cardFrontSide.SetActive(false);
             cardBackSide.SetActive(true);
             
             return Task.CompletedTask;
+        }
+
+        public void SetInteractable(bool isInteractable)
+        {
+            cardBackSideButton.interactable = isInteractable;
+        }
+
+        public void Show()
+        {
+            canvasGroup.alpha = 1;
+        }
+
+        public void Hide()
+        {
+            canvasGroup.alpha = 0;
+        }
+        
+        public void Activate()
+        {
+            gameObject.SetActive(true);
+        }
+        
+        public void Deactivate()
+        {
+            gameObject.SetActive(false);
+        }
+
+        public bool Matches(CardPresenter other)
+        {
+            return Model.CardData == other.Model.CardData;
+        }
+        
+        public bool Equals(CardPresenter other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return base.Equals(other) && Equals(Model, other.Model);
+        }
+        
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(base.GetHashCode(), Model);
         }
     }
 }

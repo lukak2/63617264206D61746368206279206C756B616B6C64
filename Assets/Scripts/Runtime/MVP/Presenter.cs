@@ -18,7 +18,14 @@ namespace Runtime.MVP
             Unsubscribe();
         }
         
+        /// <summary>
+        /// Subscribe is automatically invoked by base class, call it only when not using base.Initialize().
+        /// </summary>
         protected abstract void Subscribe();
+        
+        /// <summary>
+        /// Unsubscribe is automatically invoked by base class, call it only when not using base.Initialize().
+        /// </summary>
         protected abstract void Unsubscribe();
         protected abstract void RefreshView();
     }
