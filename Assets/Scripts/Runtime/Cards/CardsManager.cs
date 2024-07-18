@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Runtime.Cards.MVP;
 using Runtime.Utilities;
@@ -22,19 +23,21 @@ namespace Runtime.Cards
         [Header("Parameters")]
         [SerializeField] private float successfulMatchDuration = 2f;
         [SerializeField] private float failedMatchDuration = 1f;
-
-        [SerializeField] private int rowCount = 4;
-        [SerializeField] private int columnCount = 4;
-
         
-        private ObjectPool<CardPresenter> _cardPool;
+        private IObjectPool<CardPresenter> _cardPool;
+        private List<CardPresenter> _unmatchedCards = new();
+        private List<CardPresenter> _activeCards = new();
+        private List<RectTransform> _rows = new();
         
         private CardPresenter _lastClickedPresenter;
+
+        public event Action OnCardDeplete;
+        public event Action OnFailedMatch;
+        public event Action OnSuccessfulMatch;
 
         private void Awake()
         {
             Setup();
-            Initalize(rowCount, columnCount);
         }
 
         public void Initalize(int rows, int columns)
@@ -46,13 +49,34 @@ namespace Runtime.Cards
                 RectTransform row = Instantiate(rowPrefab, cardsContainer);
                 row.name = $"Row {i}";
                 
+                _rows.Add(row);
+                
                 for (int j = 0; j < columns; j++)
                 {
                     CardPresenter presenter = _cardPool.Get();
                     presenter.transform.SetParent(row, false);
                     presenter.transform.SetSiblingIndex(j);
+                    
+                    _unmatchedCards.Add(presenter);
                 }
             }
+        }
+
+        public void Reset()
+        {
+            for (var i = _activeCards.Count - 1; i >= 0; i--)
+            {
+                var activePresenter = _activeCards[i];
+                // _cardPool.Release(activePresenter);
+            }
+
+            for (int i = _rows.Count - 1; i >= 0; i--)
+            {
+                Destroy(_rows[i].gameObject);
+            }
+            
+            _rows.Clear();
+            _unmatchedCards.Clear();
         }
 
         private void Setup()
@@ -74,11 +98,15 @@ namespace Runtime.Cards
             }, 
                 presenter =>
             {
+                _activeCards.Add(presenter);
+                
                 presenter.Show();
                 presenter.Activate();
             }, 
                 actionOnRelease: presenter =>
             {
+                _activeCards.Remove(presenter);
+                
                 presenter.Deactivate();
             });
         }
@@ -121,6 +149,16 @@ namespace Runtime.Cards
             
             current.Hide();
             last.Hide();
+            
+            _unmatchedCards.Remove(current);
+            _unmatchedCards.Remove(last);
+            
+            OnSuccessfulMatch?.Invoke();
+            
+            if (_unmatchedCards.Count == 0)
+            {
+                OnCardDeplete?.Invoke();
+            }
         }
 
         private async void FailedMatchAsync(CardPresenter current, CardPresenter last)
@@ -128,6 +166,8 @@ namespace Runtime.Cards
             await Task.WhenAll(current.Reveal(), Task.Delay(TimeSpan.FromSeconds(failedMatchDuration)));
             
             await Task.WhenAll(current.Conceal(), last.Conceal());
+            
+            OnFailedMatch?.Invoke();
         }
     }
 }
