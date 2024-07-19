@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Runtime.Cards.MVP;
 using Runtime.Feedback;
-using Runtime.Utilities;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
@@ -16,13 +15,12 @@ namespace Runtime.Cards
         [Header("Resources")]
         [SerializeField] private CardFactory factory = new();
 
-        [SerializeField] private CardCollection cardCollection;
-
         [Header("References")]
         [SerializeField] private GridLayoutGroup cardsGridLayoutGroup;
         [SerializeField] private RectTransform cardsContainer;
         
         [Header("Parameters")]
+        [SerializeField] private float cardsPreviewDuration = 2f;
         [SerializeField] private float successfulMatchDuration = 2f;
         [SerializeField] private float failedMatchDuration = 1f;
         
@@ -41,22 +39,26 @@ namespace Runtime.Cards
             Setup();
         }
 
-        public void Initalize(int rows, int columns)
+        public void Initalize(int rows, int columns, List<CardData> orderedCards)
         {
             Assert.IsTrue(rows * columns % 2 == 0, "Rows times Columns must be an even number");
             
             var gridLayoutTransform = AdjustGridLayout(columns, rows);
             
-            for (int i = 0; i < rows; i++)
+            var cardCount = rows * columns;
+            
+            for (int i = 0; i < cardCount; i++)
             {
-                for (int j = 0; j < columns; j++)
-                {
-                    CardPresenter presenter = _cardPool.Get();
-                    presenter.transform.SetParent(gridLayoutTransform, false);
-                    presenter.transform.SetSiblingIndex(j);
+                CardPresenter presenter = _cardPool.Get();
                     
-                    _unmatchedCards.Add(presenter);
-                }
+                presenter.Initialize(new CardModel()
+                {
+                    CardData = orderedCards[i]
+                });
+                    
+                presenter.SetParentAndSiblingIndex(gridLayoutTransform, i);
+                    
+                _unmatchedCards.Add(presenter);
             }
         }
 
@@ -71,7 +73,17 @@ namespace Runtime.Cards
             _unmatchedCards.Clear();
         }
 
-        RectTransform AdjustGridLayout(int columns, int rows)
+        public async void PreviewAllCards()
+        {
+            // All Task usages would benefit from being replaced by UniTask and considering object lifetimes
+            await Task.WhenAll(_activeCards.ConvertAll(card => card.Reveal()));
+
+            await Task.Delay(TimeSpan.FromSeconds(cardsPreviewDuration));
+            
+            await Task.WhenAll(_activeCards.ConvertAll(card => card.Conceal()));
+        }
+
+        private RectTransform AdjustGridLayout(int columns, int rows)
         {
             var gridLayoutTransform = cardsGridLayoutGroup.GetComponent<RectTransform>();
             
@@ -93,10 +105,7 @@ namespace Runtime.Cards
             _cardPool = new ObjectPool<CardPresenter>(
                 () =>
             {
-                CardPresenter presenter = factory.Create(new CardModel()
-                {
-                    CardData = cardCollection.Cards.GetRandomElement()
-                }, transform);
+                CardPresenter presenter = factory.Create(transform);
                 
                 presenter.Deactivate();
                 presenter.Conceal();
@@ -170,7 +179,6 @@ namespace Runtime.Cards
             {
                 OnCardDeplete?.Invoke();
             }
-            
         }
 
         private async void FailedMatchAsync(CardPresenter current, CardPresenter last)

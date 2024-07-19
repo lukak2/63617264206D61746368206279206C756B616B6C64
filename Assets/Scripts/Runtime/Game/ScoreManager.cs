@@ -11,6 +11,9 @@ namespace Runtime.Game
         [SerializeField] private TMP_Text turnsText;
         [SerializeField] private TMP_Text comboText;
         
+        [SerializeField] private TMP_Text finalScoreText;
+        [SerializeField] private GameObject finalScoreObject;
+        
         public int Score { get; private set; }
         public int Combo { get; private set; }
         public int Turns { get; private set; }
@@ -25,6 +28,7 @@ namespace Runtime.Game
         {
             ResetCombo();
             ResetScore();
+            HideFinalScore();
         }
         
         public void SuccessfulMatch()
@@ -38,6 +42,17 @@ namespace Runtime.Game
         {
             AddTurn();
             ResetCombo();
+        }
+        
+        public void ShowFinalScore()
+        {
+            finalScoreObject.SetActive(true);
+            finalScoreText.text = $"Final Score: {Score}";
+        }
+        
+        private void HideFinalScore()
+        {
+            finalScoreObject.SetActive(false);
         }
         
         private void RefreshView()

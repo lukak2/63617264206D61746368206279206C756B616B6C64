@@ -9,6 +9,13 @@ namespace Runtime.MVP
     {
         [SerializeReference] private T viewPrefab;
         
+        public T Create(Transform parent)
+        {
+            T instance = Object.Instantiate(viewPrefab, parent);
+            
+            return instance;
+        }
+        
         public T Create(TJ model, Transform parent)
         {
             T instance = Object.Instantiate(viewPrefab, parent);

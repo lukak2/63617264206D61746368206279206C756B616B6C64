@@ -9,7 +9,10 @@ namespace Runtime.MVP
         public virtual void Initialize(T model)
         {
             Model = model;
-            
+        }
+
+        protected virtual void Awake()
+        {
             Subscribe();
         }
 

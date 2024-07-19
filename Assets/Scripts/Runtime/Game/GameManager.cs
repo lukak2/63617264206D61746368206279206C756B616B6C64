@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Runtime.Cards;
 using Runtime.UserInterface;
+using Runtime.Utilities;
 using UnityEngine;
 
 namespace Runtime.Game
@@ -12,6 +14,7 @@ namespace Runtime.Game
         // Avoiding the use of the Singleton pattern, DI solution would be beneficial
         
         [SerializeField] private List<GameConfigurationData> gameConfigurations;
+        [SerializeField] private CardCollection cardCollection;
         
         [Header("References")]
         [SerializeField] private ScoreManager _scoreManager;
@@ -50,6 +53,8 @@ namespace Runtime.Game
 
         private async void GameOver()
         {
+            _scoreManager.ShowFinalScore();
+            
             await Task.Delay(TimeSpan.FromSeconds(2));
             
             FinishGame();
@@ -58,10 +63,21 @@ namespace Runtime.Game
         public void StartGame(GameConfigurationData gameConfigurationData)
         {
             _scoreManager.Reset();
+
+            var testingCards = Enumerable
+                .Range(0, (gameConfigurationData.RowCount * gameConfigurationData.ColumnCount) / 2)
+                .Select(i => cardCollection.Cards.GetRandomElement())
+                .ToList();
             
-            _cardsManager.Initalize(gameConfigurationData.RowCount, gameConfigurationData.ColumnCount);
+            testingCards.AddRange(testingCards);
+
+            testingCards.Shuffle();
+            
+            _cardsManager.Initalize(gameConfigurationData.RowCount, gameConfigurationData.ColumnCount, testingCards);
 
             FocusGameCanvas();
+            
+            _cardsManager.PreviewAllCards();
         }
 
         public void FinishGame()

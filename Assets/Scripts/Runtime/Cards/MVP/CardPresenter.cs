@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Runtime.Cards.MVP
 {
-    public class CardPresenter : Presenter<CardModel>, IEquatable<CardPresenter>
+    public class CardPresenter : Presenter<CardModel>
     {
         [SerializeField] private CanvasGroup canvasGroup;
         
@@ -46,6 +46,12 @@ namespace Runtime.Cards.MVP
             frontIconImage.sprite = Model.CardData.Icon;
             frontBackgroundImage.color = Model.CardData.BackgroundColor;
             backImage.sprite = Model.CardData.BackImage;
+        }
+        
+        public void SetParentAndSiblingIndex(Transform parent, int index)
+        {
+            transform.SetParent(parent, false);
+            transform.SetSiblingIndex(index);
         }
         
         private void OnBackSideButtonClicked()
@@ -109,18 +115,6 @@ namespace Runtime.Cards.MVP
         public bool Matches(CardPresenter other)
         {
             return Model.CardData == other.Model.CardData;
-        }
-        
-        public bool Equals(CardPresenter other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return base.Equals(other) && Equals(Model, other.Model);
-        }
-        
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(base.GetHashCode(), Model);
         }
     }
 }
