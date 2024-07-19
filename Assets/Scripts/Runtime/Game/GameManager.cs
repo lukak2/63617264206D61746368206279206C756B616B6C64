@@ -59,11 +59,6 @@ namespace Runtime.Game
 
         public override SaveData Save()
         {
-            if (!IsGameRunning)
-            {
-                return null;
-            }
-
             List<string> cards = _cardsManager.GetOrderedMatchCardNames();
 
             var saveData = new SaveData();
@@ -135,6 +130,7 @@ namespace Runtime.Game
         public void FinishGame()
         {
             _cardsManager.Reset();
+            _saveManager.ClearSave();
             FocusMainMenuCanvas();
         }
 

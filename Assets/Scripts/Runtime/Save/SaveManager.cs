@@ -42,11 +42,15 @@ namespace Runtime.Save
 
                 var gameSave = _serializer.Deserialize<GameSave>(json);
 
+                if (gameSave == null)
+                {
+                    return false;
+                }
+
                 return LoadGameSave(gameSave);
             }
             catch (Exception e)
             {
-                Debug.LogError(e);
                 ClearSave();
 
                 return false;
@@ -58,6 +62,7 @@ namespace Runtime.Save
             try
             {
                 var gameSave = GetGameSave();
+                
                 var json = _serializer.Serialize(gameSave);
                 _provider.Save(GameSaveKey, json);
                 // Debug.Log(json);
@@ -71,7 +76,7 @@ namespace Runtime.Save
 
         public void ClearSave()
         {
-            _provider.Save(GameSaveKey, String.Empty);
+            _provider.Delete(GameSaveKey);
         }
 
         private bool LoadGameSave(GameSave gameSave)
@@ -112,5 +117,13 @@ namespace Runtime.Save
                 SaveData = saveData
             };
         }
+
+#if UNITY_EDITOR
+        [UnityEditor.MenuItem("Game/Clear Save")]
+        public static void ClearSaveEditor()
+        {
+            new PlayerPrefsProvider().Delete(GameSaveKey);
+        }
+#endif
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Runtime.Save.Provider
@@ -12,6 +13,11 @@ namespace Runtime.Save.Provider
         public string Load(string key)
         {
             return PlayerPrefs.GetString(key);
+        }
+
+        public void Delete(string key)
+        {
+            PlayerPrefs.DeleteKey(key);
         }
     }
 }

@@ -187,6 +187,9 @@ namespace Runtime.Cards
         {
             AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.AudioLibrary.CardMatch);
             
+            // NOTE: All task usages should be replaced by UniTask to better handle object lifetimes!
+            // Ignoring it since we are avoiding using 3rd party libraries
+            
             // Combining reveal and delay so that duration is not affected by the time it takes to reveal the card
             await Task.WhenAll(current.Reveal(), Task.Delay(TimeSpan.FromSeconds(successfulMatchDuration)));
             
