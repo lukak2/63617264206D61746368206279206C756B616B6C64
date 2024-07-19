@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Runtime.Cards;
 using Runtime.Save;
 using Runtime.UserInterface;
@@ -14,30 +15,34 @@ namespace Runtime.Game
     {
         // Avoiding the use of the Singleton pattern, DI solution would be beneficial
         
+        private const string SavedGameConfigurationKey = "SavedGameConfiguration";
+        private const string SavedCardsKey = "SavedCards";
+
         [SerializeField] private List<GameConfigurationData> gameConfigurations;
         [SerializeField] private CardCollection cardCollection;
-        
+
         [Header("References")]
         [SerializeField] private ScoreManager _scoreManager;
+
         [SerializeField] private CardsManager _cardsManager;
         [SerializeField] private MainMenu _mainMenu;
         [SerializeField] private SaveManager _saveManager;
 
         [SerializeField] private GameObject _mainMenuCanvas;
         [SerializeField] private GameObject _gameCanvas;
-        
+
         private GameConfigurationData _selectedGameConfiguration;
-        
+
         private bool IsGameRunning => _gameCanvas.activeSelf;
-        
+
         public override int SaveId => Animator.StringToHash("GameManager");
-        
+
         private void Awake()
         {
             _mainMenu.Initalize(gameConfigurations);
-            
-            _mainMenu.OnGameConfigurationSelect += StartGame;
-            
+
+            _mainMenu.OnGameConfigurationSelect += OnGameConfigurationSelected;
+
             _cardsManager.OnSuccessfulMatch += _scoreManager.SuccessfulMatch;
             _cardsManager.OnFailedMatch += _scoreManager.FailedMatch;
             _cardsManager.OnCardDeplete += GameOver;
@@ -45,25 +50,25 @@ namespace Runtime.Game
 
         private void OnDestroy()
         {
-            _mainMenu.OnGameConfigurationSelect -= StartGame;
-            
+            _mainMenu.OnGameConfigurationSelect -= OnGameConfigurationSelected;
+
             _cardsManager.OnSuccessfulMatch -= _scoreManager.SuccessfulMatch;
             _cardsManager.OnFailedMatch -= _scoreManager.FailedMatch;
             _cardsManager.OnCardDeplete -= GameOver;
         }
-        
+
         public override SaveData Save()
         {
             if (!IsGameRunning)
             {
                 return null;
             }
-            
-            Dictionary<int,string> unmatchedCards = _cardsManager.GetUnmatchedCards();
-            
+
+            List<string> cards = _cardsManager.GetOrderedMatchCardNames();
+
             var saveData = new SaveData();
-            saveData.SetString("SelectedConfiguration", _selectedGameConfiguration.Name);
-            saveData.SetString("unmatchedCards", JsonUtility.ToJson(unmatchedCards));
+            saveData.SetString(SavedGameConfigurationKey, _selectedGameConfiguration.Name);
+            saveData.SetString(SavedCardsKey, JsonConvert.SerializeObject(cards));
 
             return saveData;
         }
@@ -75,23 +80,20 @@ namespace Runtime.Game
                 FocusMainMenuCanvas();
                 return;
             }
-            
-            var selectedGameConfiguration = saveData.GetString("SelectedConfiguration");
-            var unmatchedCards = JsonUtility.FromJson<Dictionary<int,string>>(saveData.GetString("unmatchedCards"));
 
-            var alreadyMatched = Enumerable
-                .Range(0, _selectedGameConfiguration.RowCount * _selectedGameConfiguration.ColumnCount)
-                .Where(i => !unmatchedCards.ContainsKey(i))
-                .ToArray();
+            var savedGameConfigurationName = saveData.GetString(SavedGameConfigurationKey);
+            var savedGameConfiguration = gameConfigurations.First(config => config.Name == savedGameConfigurationName);
             
-            var cards = Enumerable
-                .Range(0, _selectedGameConfiguration.RowCount * _selectedGameConfiguration.ColumnCount)
-                .Where(i => cardCollection.Cards.Any(card => card.Name == unmatchedCards[i]))
-                .Select(i => cardCollection.Cards.First(card => card.Name == unmatchedCards[i]))
-                .ToList();
+            var savedCards = JsonConvert.DeserializeObject<List<string>>(saveData.GetString(SavedCardsKey));
+
+            var cards = new List<CardData>();
+
+            foreach (var cardName in savedCards)
+            {
+                cards.Add(cardCollection.Cards.FirstOrDefault(card => card.Name == cardName));
+            }
             
-            _selectedGameConfiguration = gameConfigurations.First(config => config.Name == selectedGameConfiguration);
-            _cardsManager.Initalize(_selectedGameConfiguration.RowCount, _selectedGameConfiguration.ColumnCount, cards, alreadyMatched);
+            StartGame(savedGameConfiguration, cards, true);
         }
 
 
@@ -100,7 +102,7 @@ namespace Runtime.Game
         {
             if (_saveManager.TryLoadGame())
             {
-                StartWithLoad();
+                FocusGameCanvas();
             }
             else
             {
@@ -111,31 +113,22 @@ namespace Runtime.Game
         private async void GameOver()
         {
             _scoreManager.ShowFinalScore();
-            
+
             await Task.Delay(TimeSpan.FromSeconds(2));
-            
+
             FinishGame();
         }
-        
-        public void StartGame(GameConfigurationData gameConfigurationData)
+
+        public void StartGame(GameConfigurationData gameConfigurationData, List<CardData> cards, bool isLoaded)
         {
             _selectedGameConfiguration = gameConfigurationData;
-            
-            _scoreManager.Reset();
 
-            var testingCards = Enumerable
-                .Range(0, (gameConfigurationData.RowCount * gameConfigurationData.ColumnCount) / 2)
-                .Select(i => cardCollection.Cards.GetRandomElement())
-                .ToList();
+            _scoreManager.Reset(isLoaded);
             
-            testingCards.AddRange(testingCards);
-
-            testingCards.Shuffle();
-            
-            _cardsManager.Initalize(gameConfigurationData.RowCount, gameConfigurationData.ColumnCount, testingCards, Array.Empty<int>());
+            _cardsManager.Initalize(gameConfigurationData.RowCount, gameConfigurationData.ColumnCount, cards);
 
             FocusGameCanvas();
-            
+
             _cardsManager.PreviewAllCards();
         }
 
@@ -145,11 +138,6 @@ namespace Runtime.Game
             FocusMainMenuCanvas();
         }
 
-        private void StartWithLoad()
-        {
-            FocusGameCanvas();
-        }
-        
         // Avoiding using Scene management, since that is not the focus of the task, so GameManger will handle state
         private void FocusGameCanvas()
         {
@@ -161,6 +149,22 @@ namespace Runtime.Game
         {
             _mainMenuCanvas.SetActive(true);
             _gameCanvas.SetActive(false);
+        }
+
+        private void OnGameConfigurationSelected(GameConfigurationData gameConfigurationData)
+        {
+            var generatedCards = Enumerable
+                .Range(0, (gameConfigurationData.RowCount * gameConfigurationData.ColumnCount) / 2)
+                .Select(i => cardCollection.Cards.GetRandomElement())
+                .ToList();
+
+            // Simplify generation of pairs
+            generatedCards.AddRange(generatedCards);
+
+            // Randomize card order
+            generatedCards.Shuffle();
+
+            StartGame(gameConfigurationData, generatedCards, false);
         }
     }
 }

@@ -8,6 +8,8 @@ namespace Runtime.Save
 {
     public class SaveManager : MonoBehaviour
     {
+        private const string GameSaveKey = "game_save";
+        
         [SerializeField] private List<Savable> savables;
 
         private ISerializer _serializer;
@@ -18,7 +20,7 @@ namespace Runtime.Save
             _serializer = new JsonSerializer();
             _provider = new PlayerPrefsProvider();
         }
-        
+
         private void OnApplicationPause(bool pause)
         {
             if (pause)
@@ -34,53 +36,76 @@ namespace Runtime.Save
 
         public bool TryLoadGame()
         {
-            var json = _provider.Load("game_save");
-            
-            if (string.IsNullOrEmpty(json))
+            try
             {
-                return false;
-            }
+                var json = _provider.Load(GameSaveKey);
 
-            var gameSave = _serializer.Deserialize<GameSave>(json);
-            
-            if (gameSave == null)
+                var gameSave = _serializer.Deserialize<GameSave>(json);
+
+                return LoadGameSave(gameSave);
+            }
+            catch (Exception e)
             {
+                Debug.LogError(e);
+                ClearSave();
+
                 return false;
             }
-            
-            LoadGameSave(gameSave);
-            return true;
         }
-        
+
         public void SaveGame()
         {
-            var gameSave = GetGameSave();
-            var json = _serializer.Serialize(gameSave);
-            _provider.Save("game_save", json);
-        }
-        
-        public void ClearSave()
-        {
-            _provider.Save("game_save", String.Empty);
-        }
-        
-        private void LoadGameSave(GameSave gameSave)
-        {
-            foreach (var savable in savables)
+            try
             {
-                savable.Load(gameSave.SaveData[savable.SaveId]);
+                var gameSave = GetGameSave();
+                var json = _serializer.Serialize(gameSave);
+                _provider.Save(GameSaveKey, json);
+                // Debug.Log(json);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+                ClearSave();
             }
         }
-        
+
+        public void ClearSave()
+        {
+            _provider.Save(GameSaveKey, String.Empty);
+        }
+
+        private bool LoadGameSave(GameSave gameSave)
+        {
+            bool foundInvalidData = false;
+
+            foreach (var savable in savables)
+            {
+                if (gameSave.SaveData == null)
+                {
+                    foundInvalidData = true;
+                    continue;
+                }
+
+                savable.Load(gameSave.SaveData[savable.SaveId]);
+            }
+
+            if (foundInvalidData)
+            {
+                ClearSave();
+            }
+
+            return !foundInvalidData;
+        }
+
         private GameSave GetGameSave()
         {
             var saveData = new Dictionary<int, SaveData>();
-            
+
             foreach (var savable in savables)
             {
-                saveData[savable.SaveId] = savable.Save();
+                saveData.Add(savable.SaveId, savable.Save());
             }
-            
+
             return new GameSave
             {
                 Version = 1,

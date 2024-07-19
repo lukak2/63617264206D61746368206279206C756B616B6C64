@@ -26,10 +26,15 @@ namespace Runtime.Game
             RefreshView();
         }
 
-        public void Reset()
+        public void Reset(bool isLoaded)
         {
-            ResetCombo();
-            ResetScore();
+            if (!isLoaded)
+            {
+                ResetCombo();
+                ResetScore();
+                ResetTurns();
+            }
+            
             HideFinalScore();
         }
         
@@ -67,6 +72,11 @@ namespace Runtime.Game
         private void AddTurn()
         {
             Turns += 1;
+        }
+        
+        private void ResetTurns()
+        {
+            Turns = 0;
         }
 
         private void AddScore(int score)

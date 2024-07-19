@@ -40,7 +40,7 @@ namespace Runtime.Cards
             Setup();
         }
 
-        public void Initalize(int rows, int columns, List<CardData> orderedCards, int[] alreadyMatched)
+        public void Initalize(int rows, int columns, List<CardData> orderedCards)
         {
             Assert.IsTrue(rows * columns % 2 == 0, "Rows times Columns must be an even number");
             
@@ -51,22 +51,23 @@ namespace Runtime.Cards
             for (int i = 0; i < cardCount; i++)
             {
                 CardPresenter presenter = _cardPool.Get();
-                    
+                
+                presenter.SetParentAndSiblingIndex(gridLayoutTransform, i);
+                
+                if (orderedCards[i] == null)
+                {
+                    presenter.Activate();
+                    presenter.Hide();
+                    continue;
+                }
+
                 presenter.Initialize(new CardModel()
                 {
                     CardData = orderedCards[i]
                 });
                     
-                presenter.SetParentAndSiblingIndex(gridLayoutTransform, i);
                 
-                if (alreadyMatched.Contains(i))
-                {
-                    presenter.Hide();
-                }
-                else
-                {
-                    _unmatchedCards.Add(presenter);
-                }
+                _unmatchedCards.Add(presenter);
             }
         }
 
@@ -81,17 +82,20 @@ namespace Runtime.Cards
             _unmatchedCards.Clear();
         }
         
-        public Dictionary<int, string> GetUnmatchedCards()
+        public List<string> GetOrderedMatchCardNames()
         {
-            var unmatchedCards = new Dictionary<int, string>();
+            var orderedCardNames = new List<string>();
             
-            for (var i = 0; i < _unmatchedCards.Count; i++)
+            for (var i = 0; i < _activeCards.Count; i++)
             {
-                CardPresenter card = _unmatchedCards[i];
-                unmatchedCards.Add(_activeCards.IndexOf(card), card.CardName);
+                var card = _activeCards[i];
+                
+                var cardName = _unmatchedCards.Contains(card) ? card.CardName : string.Empty;
+                
+                orderedCardNames.Add(cardName);
             }
 
-            return unmatchedCards;
+            return orderedCardNames;
         }
 
         public async void PreviewAllCards()

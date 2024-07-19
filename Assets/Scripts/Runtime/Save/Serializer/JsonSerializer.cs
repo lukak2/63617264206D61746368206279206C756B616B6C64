@@ -1,4 +1,4 @@
-using UnityEngine;
+using Newtonsoft.Json;
 
 namespace Runtime.Save.Serializer
 {
@@ -6,12 +6,12 @@ namespace Runtime.Save.Serializer
     {
         public string Serialize<T>(T obj)
         {
-            return JsonUtility.ToJson(obj);
+            return JsonConvert.SerializeObject(obj);
         }
     
         public T Deserialize<T>(string data)
         {
-            return JsonUtility.FromJson<T>(data);
+            return JsonConvert.DeserializeObject<T>(data);
         }
     }
 }

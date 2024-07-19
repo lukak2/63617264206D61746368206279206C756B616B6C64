@@ -6,8 +6,8 @@ namespace Runtime.Save
     [Serializable]
     public class SaveData
     {
-        private Dictionary<string, string> StringData = new();
-        private Dictionary<string, int> IntData = new();
+        public Dictionary<string, string> StringData = new();
+        public Dictionary<string, int> IntData = new();
 
         public void SetInt(string key, int value)
         {
