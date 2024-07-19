@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Runtime.Cards.MVP;
 using Runtime.Feedback;
@@ -27,7 +28,7 @@ namespace Runtime.Cards
         private IObjectPool<CardPresenter> _cardPool;
         private List<CardPresenter> _unmatchedCards = new();
         private List<CardPresenter> _activeCards = new();
-        
+
         private CardPresenter _lastClickedPresenter;
 
         public event Action OnCardDeplete;
@@ -50,14 +51,22 @@ namespace Runtime.Cards
             for (int i = 0; i < cardCount; i++)
             {
                 CardPresenter presenter = _cardPool.Get();
-                    
+                
+                presenter.SetParentAndSiblingIndex(gridLayoutTransform, i);
+                
+                if (orderedCards[i] == null)
+                {
+                    presenter.Activate();
+                    presenter.Hide();
+                    continue;
+                }
+
                 presenter.Initialize(new CardModel()
                 {
                     CardData = orderedCards[i]
                 });
                     
-                presenter.SetParentAndSiblingIndex(gridLayoutTransform, i);
-                    
+                
                 _unmatchedCards.Add(presenter);
             }
         }
@@ -71,6 +80,22 @@ namespace Runtime.Cards
             }
 
             _unmatchedCards.Clear();
+        }
+        
+        public List<string> GetOrderedMatchCardNames()
+        {
+            var orderedCardNames = new List<string>();
+            
+            for (var i = 0; i < _activeCards.Count; i++)
+            {
+                var card = _activeCards[i];
+                
+                var cardName = _unmatchedCards.Contains(card) ? card.CardName : string.Empty;
+                
+                orderedCardNames.Add(cardName);
+            }
+
+            return orderedCardNames;
         }
 
         public async void PreviewAllCards()
@@ -161,6 +186,9 @@ namespace Runtime.Cards
         private async void CompleteMatchAsync(CardPresenter current, CardPresenter last)
         {
             AudioFeedbackProvider.Instance.PlayClip(AudioFeedbackProvider.Instance.AudioLibrary.CardMatch);
+            
+            // NOTE: All task usages should be replaced by UniTask to better handle object lifetimes!
+            // Ignoring it since we are avoiding using 3rd party libraries
             
             // Combining reveal and delay so that duration is not affected by the time it takes to reveal the card
             await Task.WhenAll(current.Reveal(), Task.Delay(TimeSpan.FromSeconds(successfulMatchDuration)));
