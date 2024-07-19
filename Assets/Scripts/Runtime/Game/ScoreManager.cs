@@ -1,10 +1,10 @@
-using System;
+using Runtime.Save;
 using TMPro;
 using UnityEngine;
 
 namespace Runtime.Game
 {
-    public class ScoreManager : MonoBehaviour
+    public class ScoreManager : Savable
     {
         [Header("References")]
         [SerializeField] private TMP_Text scoreText;
@@ -17,6 +17,8 @@ namespace Runtime.Game
         public int Score { get; private set; }
         public int Combo { get; private set; }
         public int Turns { get; private set; }
+        
+        public override int SaveId => Animator.StringToHash("ScoreManager");
         
         private void Update()
         {
@@ -85,6 +87,24 @@ namespace Runtime.Game
         private void ResetCombo()
         {
             Combo = 0;
+        }
+        
+        public override SaveData Save()
+        {
+            var saveData = new SaveData();
+            
+            saveData.SetInt(nameof(Score), Score);
+            saveData.SetInt(nameof(Combo), Combo);
+            saveData.SetInt(nameof(Turns), Turns);
+            
+            return saveData;
+        }
+
+        public override void Load(SaveData saveData)
+        {
+            Score = saveData.GetInt(nameof(Score));
+            Combo = saveData.GetInt(nameof(Combo));
+            Turns = saveData.GetInt(nameof(Turns));
         }
     }
 }

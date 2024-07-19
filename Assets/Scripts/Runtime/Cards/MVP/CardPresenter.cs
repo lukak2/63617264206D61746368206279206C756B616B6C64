@@ -22,6 +22,8 @@ namespace Runtime.Cards.MVP
         [SerializeField] private Image frontBackgroundImage;
         [SerializeField] private Image backImage;
 
+        public string CardName => Model.CardData.Name;
+        
         public event Action<CardPresenter> OnBackSideClick;
         
         public override void Initialize(CardModel model)

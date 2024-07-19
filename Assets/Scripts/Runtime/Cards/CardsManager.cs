@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Runtime.Cards.MVP;
 using Runtime.Feedback;
@@ -27,7 +28,7 @@ namespace Runtime.Cards
         private IObjectPool<CardPresenter> _cardPool;
         private List<CardPresenter> _unmatchedCards = new();
         private List<CardPresenter> _activeCards = new();
-        
+
         private CardPresenter _lastClickedPresenter;
 
         public event Action OnCardDeplete;
@@ -39,7 +40,7 @@ namespace Runtime.Cards
             Setup();
         }
 
-        public void Initalize(int rows, int columns, List<CardData> orderedCards)
+        public void Initalize(int rows, int columns, List<CardData> orderedCards, int[] alreadyMatched)
         {
             Assert.IsTrue(rows * columns % 2 == 0, "Rows times Columns must be an even number");
             
@@ -57,8 +58,15 @@ namespace Runtime.Cards
                 });
                     
                 presenter.SetParentAndSiblingIndex(gridLayoutTransform, i);
-                    
-                _unmatchedCards.Add(presenter);
+                
+                if (alreadyMatched.Contains(i))
+                {
+                    presenter.Hide();
+                }
+                else
+                {
+                    _unmatchedCards.Add(presenter);
+                }
             }
         }
 
@@ -71,6 +79,19 @@ namespace Runtime.Cards
             }
 
             _unmatchedCards.Clear();
+        }
+        
+        public Dictionary<int, string> GetUnmatchedCards()
+        {
+            var unmatchedCards = new Dictionary<int, string>();
+            
+            for (var i = 0; i < _unmatchedCards.Count; i++)
+            {
+                CardPresenter card = _unmatchedCards[i];
+                unmatchedCards.Add(_activeCards.IndexOf(card), card.CardName);
+            }
+
+            return unmatchedCards;
         }
 
         public async void PreviewAllCards()
